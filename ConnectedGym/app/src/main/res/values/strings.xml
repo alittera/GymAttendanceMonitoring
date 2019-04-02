@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Connected Gym</string>
+    <string name="title_home">Home</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_account">Account</string>
+    <string name="title_settings">Settings</string>
+</resources>
