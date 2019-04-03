@@ -1,10 +1,11 @@
 package com.iot.connectedgym;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -15,6 +16,15 @@ import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -22,9 +32,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,9 +44,10 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mTextMessage, myBeacon;
+    private TextView notifications, myBeacon;
+    private Button clear_notification;
     private BeaconManager beaconManager;
-    private int room_1 = 53723, room_2 = 44680;
+    private int room_1 = 53723, room_2 = 44680, room_3 = 0;
 
     private final String DEBUG_TAG = "DEBUG";
     final private int REQUEST_ENABLE_BT = 125;
@@ -48,20 +60,24 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-                    mTextMessage.setText(R.string.title_home);
-                    Toast.makeText(getApplicationContext(), "Home", Toast.LENGTH_LONG).show();
+                    myBeacon.setVisibility(View.VISIBLE);
+                    notifications.setVisibility(View.GONE);
+                    clear_notification.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_notifications:
-                    mTextMessage.setText(R.string.title_notifications);
-                    Toast.makeText(getApplicationContext(), "Notifications", Toast.LENGTH_LONG).show();
+                    myBeacon.setVisibility(View.GONE);
+                    notifications.setVisibility(View.VISIBLE);
+                    clear_notification.setVisibility(View.VISIBLE);
                     return true;
                 case R.id.navigation_account:
-                    mTextMessage.setText(R.string.title_account);
-                    Toast.makeText(getApplicationContext(), "Account", Toast.LENGTH_LONG).show();
+                    myBeacon.setVisibility(View.GONE);
+                    notifications.setVisibility(View.GONE);
+                    clear_notification.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_settings:
-                    mTextMessage.setText(R.string.title_settings);
-                    Toast.makeText(getApplicationContext(), "Settings", Toast.LENGTH_LONG).show();
+                    myBeacon.setVisibility(View.GONE);
+                    notifications.setVisibility(View.GONE);
+                    clear_notification.setVisibility(View.GONE);
                     return true;
             }
             return false;
@@ -73,34 +89,41 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         myBeacon = (TextView) findViewById(R.id.mybeacon);
+        notifications = (TextView) findViewById(R.id.notifications);
+        clear_notification = (Button) findViewById(R.id.clear_notifications);
 
         // Add Beacon Manager
         beaconManager = new BeaconManager(getApplicationContext());
 
-        beaconManager.setBackgroundScanPeriod(1000, 1000);
+        beaconManager.setBackgroundScanPeriod(1000, 10000);
 
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
             public void onEnteredRegion(Region region, List<Beacon> list) {
-                if(list.get(0).getMinor() == room_1) {
-                    myBeacon.setText("Beacon found: Room 1");
+                if (!list.isEmpty()) {
+                    Beacon nearestBeacon = list.get(0);
+                    if (nearestBeacon.getMinor() == room_1) {
+                        myBeacon.setText("Your current room:\nRoom 1");
+                        notifications.append("You joined Room 1\n");
+                    } else if (nearestBeacon.getMinor() == room_2) {
+                        myBeacon.setText("Your current room:\nRoom 2");
+                        notifications.append("You joined Room 2\n");
+                    } else if (nearestBeacon.getMinor() == room_3) {
+                        myBeacon.setText("Your current room:\nRoom 3");
+                        notifications.append("You joined Room 3\n");
+                    }
+                    beaconManager.startRanging(region);
                 }
-                else if (list.get(0).getMinor() == room_2) {
-                    myBeacon.setText("Beacon found: Room 2");
-                }
-                beaconManager.startRanging(region);
-                Toast.makeText(getApplicationContext(), "Beacon found", Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onExitedRegion(Region region) {
-                myBeacon.setText("Beacon exit!");
-                Toast.makeText(getApplicationContext(), "No more beacon", Toast.LENGTH_LONG).show();
+                myBeacon.setText("Your current room:\\nNo room!");
+                notifications.append("You left the room!\n");
             }
         });
 
@@ -176,8 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
             if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(intent);
+                enableGPS();
             }
         }else{
             Log.d(DEBUG_TAG,"request more than 4");
@@ -188,29 +210,39 @@ public class MainActivity extends AppCompatActivity {
     //return from  startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT) in enableBLT()
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == REQUEST_ENABLE_BT) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
-                // The user open the bluethoot.
-                // The Intent's data Uri identifies which contact was selected.
-                Log.d(DEBUG_TAG,"L utente ha dato il permesso");
-                // Do something with the contact here (bigger example below)
-            }else{ //if(requestCode == RESULT_CANCELED){
-                Log.d(DEBUG_TAG,"L utente non ha dato il permesso");
-                request++;
-
-            }
+        switch (requestCode) {
+            case LocationRequest.PRIORITY_HIGH_ACCURACY:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        // All required changes were successfully made
+                        Log.i(DEBUG_TAG, "onActivityResult: GPS Enabled by user");
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        // The user was asked to change settings, but chose not to
+                        Log.i(DEBUG_TAG, "onActivityResult: User rejected GPS request");
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case REQUEST_ENABLE_BT:
+                switch(resultCode) {
+                    case RESULT_OK:
+                        Log.d(DEBUG_TAG,"L utente ha dato il permesso");
+                        break;
+                    case RESULT_CANCELED:
+                        Log.d(DEBUG_TAG,"L utente non ha dato il permesso");
+                        break;
+                }
         }
     }
 
 
     private void enableBluetoothPermission() {
-        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.ACCESS_COARSE_LOCATION);
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             //shouldShowRequestPermissionRationale() = If this function is called on pre-M, it will always return false.
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
 
                 showMessageOKCancel("You need to allow access for BLT scanning on Android 6.0 and above.",
                         new DialogInterface.OnClickListener() {
@@ -258,6 +290,57 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
+    }
+
+    public void enableGPS() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+
+        Task<LocationSettingsResponse> result =
+                LocationServices.getSettingsClient(MainActivity.this).checkLocationSettings(builder.build());
+
+
+
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                try {
+                    LocationSettingsResponse response = task.getResult(ApiException.class);
+                    // All location settings are satisfied. The client can initialize location
+                    // requests here.
+                } catch (ApiException exception) {
+                    switch (exception.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the
+                            // user a dialog.
+                            try {
+                                // Cast to a resolvable exception.
+                                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                resolvable.startResolutionForResult(
+                                        MainActivity.this,
+                                        LocationRequest.PRIORITY_HIGH_ACCURACY);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            } catch (ClassCastException e) {
+                                // Ignore, should be an impossible error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix the
+                            // settings so we won't show the dialog.
+                            break;
+                    }
+                }
+            }
+        });
+    }
+
+    public void clearAllNotifications(View v) {
+        notifications.setText("");
+        Toast.makeText(this, "Notifications deleted!", Toast.LENGTH_LONG).show();
     }
 
 }
