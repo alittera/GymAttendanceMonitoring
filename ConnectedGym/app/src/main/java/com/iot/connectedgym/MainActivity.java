@@ -1,23 +1,41 @@
 package com.iot.connectedgym;
 
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
-import com.estimote.coresdk.common.config.EstimoteSDK;
-import com.estimote.mgmtsdk.feature.bulk_updater.BulkUpdater;
+import com.estimote.sdk.Beacon;
+import com.estimote.sdk.BeaconManager;
+import com.estimote.sdk.Region;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+import java.util.UUID;
+
 public class MainActivity extends AppCompatActivity {
 
-    private TextView mTextMessage;
-    private BulkUpdater bulkUpdater;
+    private TextView mTextMessage, myBeacon;
+    private final String TAG_DEBUG = "DemoActivity";
+    final private String DEBUG_TAG= TAG_DEBUG;
+    final private int REQUEST_ENABLE_BT = 125;
+    private int request=0, max_request=99;
+    private int ID_response = -1;
+    private BeaconManager beaconManager;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -55,9 +73,34 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        // Estimote Credentials
-        EstimoteSDK.initialize(getApplicationContext(), "connected-gym-76c", "3216c5ace0d91a371ba79e801584b99e");
-        EstimoteSDK.enableDebugLogging(true);
+        myBeacon = (TextView) findViewById(R.id.mybeacon);
+
+        // Add Beacon Manager
+        beaconManager = new BeaconManager(getApplicationContext());
+
+        beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
+            @Override
+            public void onEnteredRegion(Region region, List<Beacon> list) {
+                myBeacon.setText("Beacon found!");
+                Toast.makeText(getApplicationContext(), "Beacon found", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onExitedRegion(Region region) {
+                myBeacon.setText("Beacon exit!");
+                Toast.makeText(getApplicationContext(), "No more beacon", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        beaconManager.setBackgroundScanPeriod(2000, 2000);
+
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override
+            public void onServiceReady() {
+                beaconManager.startMonitoring(new Region("Room", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null));
+            }
+        });
+
     }
 
 }
