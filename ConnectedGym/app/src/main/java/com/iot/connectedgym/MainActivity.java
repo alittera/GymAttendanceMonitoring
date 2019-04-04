@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
+import com.estimote.sdk.SystemRequirementsChecker;
 import com.estimote.sdk.Utils;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -32,6 +33,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +41,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView notifications, myBeacon;
     private Button clear_notification;
     private BeaconManager beaconManager;
-    private int room_1 = 53723, room_2 = 44680, room_3 = 0;
+    private Region region;
+    private int room_1 = 53723, room_2 = 44680, room_3 = 56571;
 
     private final String DEBUG_TAG = "DEBUG";
     final private int REQUEST_ENABLE_BT = 125;
@@ -94,12 +98,16 @@ public class MainActivity extends AppCompatActivity {
 
         myBeacon = (TextView) findViewById(R.id.mybeacon);
         notifications = (TextView) findViewById(R.id.notifications);
+        notifications.setMovementMethod(new ScrollingMovementMethod());
         clear_notification = (Button) findViewById(R.id.clear_notifications);
 
         // Add Beacon Manager
         beaconManager = new BeaconManager(getApplicationContext());
 
-        beaconManager.setBackgroundScanPeriod(1000, 10000);
+        // Create region
+        region = new Region("Room", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
+
+        beaconManager.setBackgroundScanPeriod(1000, 1000);
 
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
@@ -107,13 +115,10 @@ public class MainActivity extends AppCompatActivity {
                 if (!list.isEmpty()) {
                     Beacon nearestBeacon = list.get(0);
                     if (nearestBeacon.getMinor() == room_1) {
-                        myBeacon.setText("Your current room:\nRoom 1");
                         notifications.append("You joined Room 1\n");
                     } else if (nearestBeacon.getMinor() == room_2) {
-                        myBeacon.setText("Your current room:\nRoom 2");
                         notifications.append("You joined Room 2\n");
                     } else if (nearestBeacon.getMinor() == room_3) {
-                        myBeacon.setText("Your current room:\nRoom 3");
                         notifications.append("You joined Room 3\n");
                     }
                     beaconManager.startRanging(region);
@@ -122,18 +127,28 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onExitedRegion(Region region) {
-                myBeacon.setText("Your current room:\\nNo room!");
+                myBeacon.setText("Your current room:\nNo room!");
                 notifications.append("You left the room!\n");
+                beaconManager.startRanging(region);
             }
         });
+
+        beaconManager.setForegroundScanPeriod(1000, 1000);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
             public void onBeaconsDiscovered(Region region, List<Beacon> list) {
                 if (!list.isEmpty()) {
                     Beacon nearestBeacon = list.get(0);
-                    nearestBeacon.getRssi();
-                    nearestBeacon.getMeasuredPower();
+                    if (nearestBeacon.getMinor() == room_1) {
+                        myBeacon.setText("Your current room:\nRoom 1");
+                    } else if (nearestBeacon.getMinor() == room_2) {
+                        myBeacon.setText("Your current room:\nRoom 2");
+                    } else if (nearestBeacon.getMinor() == room_3) {
+                        myBeacon.setText("Your current room:\nRoom 3");
+                    }
+                    //nearestBeacon.getRssi();
+                    //nearestBeacon.getMeasuredPower();
                     Utils.Proximity pos = Utils.computeProximity(nearestBeacon);
                     Log.d(DEBUG_TAG, "  Utils.computeProximity(nearestBeacon): " + Utils.computeProximity(nearestBeacon));
                     String msg = "";
@@ -151,13 +166,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-            @Override
-            public void onServiceReady() {
-                beaconManager.startMonitoring(new Region("Room", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null));
-            }
-        });
     }
 
     @Override
@@ -166,6 +174,15 @@ public class MainActivity extends AppCompatActivity {
         Log.d(DEBUG_TAG, "onResume()");
         // ENABLE BLUETooth
         enableBluetoothPermission();
+
+        SystemRequirementsChecker.checkWithDefaultDialogs(this);
+
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override
+            public void onServiceReady() {
+                beaconManager.startMonitoring(region);
+            }
+        });
     }
 
     @Override
@@ -184,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
     protected  void onDestroy(){
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
+        beaconManager.stopMonitoring(region);
     }
 
     private void enableBLT(){
