@@ -27,6 +27,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textfield.TextInputLayout;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,13 +42,13 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView notifications, myBeacon;
+    private TextInputLayout user_name, user_email, user_age;
     private Button clear_notification;
     private BeaconManager beaconManager;
     private Region region;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private final String DEBUG_TAG = "DEBUG";
     final private int REQUEST_ENABLE_BT = 125;
     private int request=0, max_request=99;
+    private int currentRoom = 0;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -67,21 +69,33 @@ public class MainActivity extends AppCompatActivity {
                     myBeacon.setVisibility(View.VISIBLE);
                     notifications.setVisibility(View.GONE);
                     clear_notification.setVisibility(View.GONE);
+                    user_name.setVisibility(View.GONE);
+                    user_email.setVisibility(View.GONE);
+                    user_age.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_notifications:
                     myBeacon.setVisibility(View.GONE);
                     notifications.setVisibility(View.VISIBLE);
                     clear_notification.setVisibility(View.VISIBLE);
+                    user_name.setVisibility(View.GONE);
+                    user_email.setVisibility(View.GONE);
+                    user_age.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_account:
                     myBeacon.setVisibility(View.GONE);
                     notifications.setVisibility(View.GONE);
                     clear_notification.setVisibility(View.GONE);
+                    user_name.setVisibility(View.VISIBLE);
+                    user_email.setVisibility(View.VISIBLE);
+                    user_age.setVisibility(View.VISIBLE);
                     return true;
                 case R.id.navigation_settings:
                     myBeacon.setVisibility(View.GONE);
                     notifications.setVisibility(View.GONE);
                     clear_notification.setVisibility(View.GONE);
+                    user_name.setVisibility(View.GONE);
+                    user_email.setVisibility(View.GONE);
+                    user_age.setVisibility(View.GONE);
                     return true;
             }
             return false;
@@ -100,6 +114,9 @@ public class MainActivity extends AppCompatActivity {
         notifications = (TextView) findViewById(R.id.notifications);
         notifications.setMovementMethod(new ScrollingMovementMethod());
         clear_notification = (Button) findViewById(R.id.clear_notifications);
+        user_name = (TextInputLayout) findViewById(R.id.text_input_layout_name);
+        user_email = (TextInputLayout) findViewById(R.id.text_input_layout_email);
+        user_age = (TextInputLayout) findViewById(R.id.text_input_layout_age);
 
         // Add Beacon Manager
         beaconManager = new BeaconManager(getApplicationContext());
@@ -107,20 +124,13 @@ public class MainActivity extends AppCompatActivity {
         // Create region
         region = new Region("Room", UUID.fromString("B9407F30-F5F8-466E-AFF9-25556B57FE6D"), null, null);
 
+        //
         beaconManager.setBackgroundScanPeriod(1000, 1000);
 
         beaconManager.setMonitoringListener(new BeaconManager.MonitoringListener() {
             @Override
             public void onEnteredRegion(Region region, List<Beacon> list) {
                 if (!list.isEmpty()) {
-                    Beacon nearestBeacon = list.get(0);
-                    if (nearestBeacon.getMinor() == room_1) {
-                        notifications.append("You joined Room 1\n");
-                    } else if (nearestBeacon.getMinor() == room_2) {
-                        notifications.append("You joined Room 2\n");
-                    } else if (nearestBeacon.getMinor() == room_3) {
-                        notifications.append("You joined Room 3\n");
-                    }
                     beaconManager.startRanging(region);
                 }
             }
@@ -142,10 +152,22 @@ public class MainActivity extends AppCompatActivity {
                     Beacon nearestBeacon = list.get(0);
                     if (nearestBeacon.getMinor() == room_1) {
                         myBeacon.setText("Your current room:\nRoom 1");
+                        if(currentRoom != 1) {
+                            notifications.append("You joined Room 1\n");
+                            currentRoom = 1;
+                        }
                     } else if (nearestBeacon.getMinor() == room_2) {
                         myBeacon.setText("Your current room:\nRoom 2");
+                        if(currentRoom != 2) {
+                            notifications.append("You joined Room 2\n");
+                            currentRoom = 2;
+                        }
                     } else if (nearestBeacon.getMinor() == room_3) {
                         myBeacon.setText("Your current room:\nRoom 3");
+                        if(currentRoom != 3) {
+                            notifications.append("You joined Room 3\n");
+                            currentRoom = 3;
+                        }
                     }
                     //nearestBeacon.getRssi();
                     //nearestBeacon.getMeasuredPower();
@@ -180,7 +202,8 @@ public class MainActivity extends AppCompatActivity {
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
-                beaconManager.startMonitoring(region);
+                beaconManager.startRanging(region);
+                //beaconManager.startMonitoring(region);
             }
         });
     }
@@ -201,7 +224,8 @@ public class MainActivity extends AppCompatActivity {
     protected  void onDestroy(){
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
-        beaconManager.stopMonitoring(region);
+        beaconManager.stopRanging(region);
+        //beaconManager.stopMonitoring(region);
     }
 
     private void enableBLT(){
