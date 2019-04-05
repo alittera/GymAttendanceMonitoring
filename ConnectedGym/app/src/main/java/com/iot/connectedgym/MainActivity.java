@@ -89,9 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
     private int msgRegSentCount = 0, msgUpdSentCount = 0, sendFailuresCount = 0, receiptsConfirmedCount = 0, sendMsgInterval = 5000;
     private Thread sendUpdThread;
-    private static final int METHOD_SUCCESS = 200;
-    private static final int METHOD_THROWS = 403;
-    private static final int METHOD_NOT_DEFINED = 404;
+    private static final int METHOD_SUCCESS = 200, METHOD_THROWS = 403, METHOD_NOT_DEFINED = 404;
     private Handler handler;
 
     private final String DEBUG_TAG = "DEBUG";
@@ -485,11 +483,43 @@ public class MainActivity extends AppCompatActivity {
     // Azure Functions
 
     private void sendRegMessages() {
-        return;
+        prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+        msgReg = "{\n" +
+                " \"name\": "+ prefs.getString("full_name", null) + "\n" +
+                " \"email\": "+ prefs.getString("email", null) + "\n" +
+                " \"age\": "+ prefs.getString("age", null) + "\n" +
+                " \"gender\": "+ prefs.getString("gender", null) + "\n" +
+                " \"type\": "+ "R" + "\n" +
+                "}";
+        try {
+            sendReg = new Message(msgReg);
+            sendReg.setMessageId(java.util.UUID.randomUUID().toString());
+            System.out.println("Message Sent: " + msgReg);
+            EventCallback eventCallback = new EventCallback();
+            client.sendEventAsync(sendReg, eventCallback, msgRegSentCount);
+            msgRegSentCount++;
+        } catch (Exception e) {
+            System.err.println("Exception while sending event: " + e);
+        }
     }
 
     private void sendUpdMessages() {
-        return;
+        prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+        msgUpd = "{\n" +
+                " \"email\": "+ prefs.getString("email", null) + "\n" +
+                " \"room\": "+ currentRoom + "\n" +
+                " \"type\": "+ "U" + "\n" +
+                "}";
+        try {
+            sendUpd = new Message(msgUpd);
+            sendUpd.setMessageId(java.util.UUID.randomUUID().toString());
+            System.out.println("Message Sent: " + msgUpd);
+            EventCallback eventCallback = new EventCallback();
+            client.sendEventAsync(sendUpd, eventCallback, msgUpdSentCount);
+            msgUpdSentCount++;
+        } catch (Exception e) {
+            System.err.println("Exception while sending event: " + e);
+        }
     }
 
     private void stopUpd() {
