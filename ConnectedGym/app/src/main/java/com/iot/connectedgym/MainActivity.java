@@ -32,6 +32,7 @@ import com.google.android.material.textfield.TextInputLayout;
 
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodData;
+import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeReason;
 import com.microsoft.azure.sdk.iot.device.IotHubMessageResult;
@@ -68,6 +69,8 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String connString = "Device_Connection_String";
+
     private TextView notifications, myBeacon;
     private TextInputLayout user_name, user_email, user_age;
     private EditText full_name, email, age;
@@ -81,8 +84,11 @@ public class MainActivity extends AppCompatActivity {
     private Message sendMessageRegistration, sendMessageUpdating;
     private String msgStrRegistration, msgStrUpdating;
     private int msgSentCountRegistration = 0, msgSentCountUpdating = 0;
+    private int sendMessagesInterval = 5000;
 
     private DeviceClient client;
+
+    IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
 
     private static final int METHOD_SUCCESS = 200;
     public static final int METHOD_THROWS = 403;
@@ -247,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
             editor.putString("email", "");
             editor.putString("age", "");
             editor.putString("gender", "");
+            editor.putBoolean("registered", false);
             editor.commit();
         }
 
@@ -288,6 +295,19 @@ public class MainActivity extends AppCompatActivity {
                 setData(prefs, full_name.getText().toString(), email.getText().toString(), age.getText().toString(), ((RadioButton)findViewById(gender_group.getCheckedRadioButtonId())).getText().toString());
             }
         });
+
+        if(!prefs.getBoolean("registered", false)) {
+            if (!prefs.getString("full_name", null).equals("") &&
+                    !prefs.getString("email", null).equals("") &&
+                    !prefs.getString("age", null).equals("") &&
+                    !prefs.getString("gender", null).equals("")) {
+                sendSignIn();
+                prefs.edit().putBoolean("registered", true);
+                prefs.edit().commit();
+            }
+        }
+
+        sendMessagesUpdate();
     }
 
     private void sendMessagesUpdate() {
