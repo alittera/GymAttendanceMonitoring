@@ -560,54 +560,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class MessageCallback implements com.microsoft.azure.sdk.iot.device.MessageCallback
-    {
-        public IotHubMessageResult execute(Message msg, Object context)
-        {
+    class MessageCallback implements com.microsoft.azure.sdk.iot.device.MessageCallback {
+        public IotHubMessageResult execute(Message msg, Object context) {
             System.out.println(
                     "Received message with content: " + new String(msg.getBytes(), Message.DEFAULT_IOTHUB_MESSAGE_CHARSET));
             return IotHubMessageResult.COMPLETE;
         }
     }
 
-    protected static class IotHubConnectionStatusChangeCallbackLogger implements IotHubConnectionStatusChangeCallback
-    {
+    protected static class IotHubConnectionStatusChangeCallbackLogger implements IotHubConnectionStatusChangeCallback {
         @Override
-        public void execute(IotHubConnectionStatus status, IotHubConnectionStatusChangeReason statusChangeReason, Throwable throwable, Object callbackContext)
-        {
+        public void execute(IotHubConnectionStatus status, IotHubConnectionStatusChangeReason statusChangeReason, Throwable throwable, Object callbackContext) {
             System.out.println();
             System.out.println("CONNECTION STATUS UPDATE: " + status);
             System.out.println("CONNECTION STATUS REASON: " + statusChangeReason);
             System.out.println("CONNECTION STATUS THROWABLE: " + (throwable == null ? "null" : throwable.getMessage()));
             System.out.println();
 
-            if (throwable != null)
-            {
+            if (throwable != null) {
                 throwable.printStackTrace();
             }
 
-            if (status == IotHubConnectionStatus.DISCONNECTED)
-            {
+            if (status == IotHubConnectionStatus.DISCONNECTED) {
                 //connection was lost, and is not being re-established. Look at provided exception for
                 // how to resolve this issue. Cannot send messages until this issue is resolved, and you manually
                 // re-open the device client
             }
-            else if (status == IotHubConnectionStatus.DISCONNECTED_RETRYING)
-            {
+            else if (status == IotHubConnectionStatus.DISCONNECTED_RETRYING) {
                 //connection was lost, but is being re-established. Can still send messages, but they won't
                 // be sent until the connection is re-established
             }
-            else if (status == IotHubConnectionStatus.CONNECTED)
-            {
+            else if (status == IotHubConnectionStatus.CONNECTED) {
                 //Connection was successfully re-established. Can send messages.
             }
         }
     }
 
-    protected class DeviceMethodStatusCallBack implements IotHubEventCallback
-    {
-        public void execute(IotHubStatusCode status, Object context)
-        {
+    protected class DeviceMethodStatusCallBack implements IotHubEventCallback {
+        public void execute(IotHubStatusCode status, Object context) {
             System.out.println("IoT Hub responded to device method operation with status " + status.name());
         }
     }
