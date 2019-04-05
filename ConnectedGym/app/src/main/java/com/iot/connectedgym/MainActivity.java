@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -39,6 +40,9 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,15 +53,18 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView notifications, myBeacon;
     private TextInputLayout user_name, user_email, user_age;
-    private Button clear_notification;
+    private EditText full_name, email, age;
+    private Button clear_notification, save_data;
+    private RadioGroup gender_group;
     private BeaconManager beaconManager;
     private Region region;
-    private int room_1 = 53723, room_2 = 44680, room_3 = 56571;
+    private int room_1 = 53723, room_2 = 44680, room_3 = 56571, currentRoom = 0;
+
+    private SharedPreferences prefs;
 
     private final String DEBUG_TAG = "DEBUG";
     final private int REQUEST_ENABLE_BT = 125;
     private int request=0, max_request=99;
-    private int currentRoom = 0;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -72,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
                     user_name.setVisibility(View.GONE);
                     user_email.setVisibility(View.GONE);
                     user_age.setVisibility(View.GONE);
+                    gender_group.setVisibility(View.GONE);
+                    save_data.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_notifications:
                     myBeacon.setVisibility(View.GONE);
@@ -80,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
                     user_name.setVisibility(View.GONE);
                     user_email.setVisibility(View.GONE);
                     user_age.setVisibility(View.GONE);
+                    gender_group.setVisibility(View.GONE);
+                    save_data.setVisibility(View.GONE);
                     return true;
                 case R.id.navigation_account:
                     myBeacon.setVisibility(View.GONE);
@@ -88,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
                     user_name.setVisibility(View.VISIBLE);
                     user_email.setVisibility(View.VISIBLE);
                     user_age.setVisibility(View.VISIBLE);
+                    gender_group.setVisibility(View.VISIBLE);
+                    save_data.setVisibility(View.VISIBLE);
                     return true;
                 case R.id.navigation_settings:
                     myBeacon.setVisibility(View.GONE);
@@ -96,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
                     user_name.setVisibility(View.GONE);
                     user_email.setVisibility(View.GONE);
                     user_age.setVisibility(View.GONE);
+                    gender_group.setVisibility(View.GONE);
+                    save_data.setVisibility(View.GONE);
                     return true;
             }
             return false;
@@ -117,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
         user_name = (TextInputLayout) findViewById(R.id.text_input_layout_name);
         user_email = (TextInputLayout) findViewById(R.id.text_input_layout_email);
         user_age = (TextInputLayout) findViewById(R.id.text_input_layout_age);
+        full_name = (EditText) findViewById(R.id.edit_text_name);
+        email = (EditText) findViewById(R.id.edit_text_email);
+        age = (EditText) findViewById(R.id.edit_text_age);
+        gender_group = (RadioGroup) findViewById(R.id.user_gender);
+        save_data = (Button) findViewById(R.id.save_data);
 
         // Add Beacon Manager
         beaconManager = new BeaconManager(getApplicationContext());
@@ -188,6 +208,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // User's data
+        prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        boolean firstTime = prefs.getBoolean("firstTime", false);
+
+        if (!firstTime) {
+            editor.putBoolean("firstTime", true);
+            editor.putString("full_name", "");
+            editor.putString("email", "");
+            editor.putString("age", "");
+            editor.putString("gender", "");
+            editor.commit();
+        }
+
+
     }
 
     @Override
@@ -202,8 +238,27 @@ public class MainActivity extends AppCompatActivity {
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
-                beaconManager.startRanging(region);
-                //beaconManager.startMonitoring(region);
+                //beaconManager.startRanging(region);
+                beaconManager.startMonitoring(region);
+            }
+        });
+
+        prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+        full_name.setText(prefs.getString("full_name", null));
+        email.setText(prefs.getString("email", null));
+        age.setText(prefs.getString("age", null));
+        if(prefs.getString("gender", null).equals("M")) {
+            gender_group.check(R.id.radio_male);
+        }
+        else if(prefs.getString("gender", null).equals("F")) {
+            gender_group.check(R.id.radio_female);
+        }
+
+        save_data.setOnClickListener( new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                setData(prefs, full_name.getText().toString(), email.getText().toString(), age.getText().toString(), ((RadioButton)findViewById(gender_group.getCheckedRadioButtonId())).getText().toString());
             }
         });
     }
@@ -224,8 +279,9 @@ public class MainActivity extends AppCompatActivity {
     protected  void onDestroy(){
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
-        beaconManager.stopRanging(region);
-        //beaconManager.stopMonitoring(region);
+        //beaconManager.stopRanging(region);
+        beaconManager.stopMonitoring(region);
+        beaconManager.disconnect();
     }
 
     private void enableBLT(){
@@ -316,8 +372,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(DEBUG_TAG,"PERMESSO DATO!!!");
                 } else {
                     // Permission Denied
-                    Toast.makeText(MainActivity.this, "PERMISSION_GRANTED Denied", Toast.LENGTH_SHORT)
-                            .show();
+                    Toast.makeText(MainActivity.this, "PERMISSION_GRANTED Denied", Toast.LENGTH_SHORT).show();
                 }
                 break;
             default:
@@ -383,6 +438,34 @@ public class MainActivity extends AppCompatActivity {
     public void clearAllNotifications(View v) {
         notifications.setText("");
         Toast.makeText(this, "Notifications deleted!", Toast.LENGTH_LONG).show();
+    }
+/*
+    public void onRadioButtonClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.radio_male:
+                if (checked)
+                    RadioButton btn = (RadioButton) findViewById(R.id.radio_female);
+                    // Pirates are the best
+                    break;
+            case R.id.radio_female:
+                if (checked)
+                    // Ninjas rule
+                    break;
+        }
+    }*/
+
+    private void setData(SharedPreferences prefs, String name, String email, String age, String gender) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("full_name", name);
+        editor.putString("email", email);
+        editor.putString("age", age);
+        editor.putString("gender", gender);
+        editor.commit();
+        Toast.makeText(MainActivity.this, "Data saved!", Toast.LENGTH_SHORT).show();
     }
 
 }
