@@ -40,5 +40,13 @@ dependencies {
     // Estimote
     implementation 'com.estimote:sdk:0.9.4@aar'
 
+    implementation ('com.microsoft.azure.sdk.iot:iot-device-client:1.14.2'){
+        exclude module: 'azure-storage'
+    }
+    implementation ('com.microsoft.azure.android:azure-storage-android:2.0.0@aar')
+    implementation ('org.apache.commons:commons-lang3:3.6')
+}
 
+repositories {
+    mavenCentral()
 }

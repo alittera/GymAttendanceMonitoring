@@ -30,6 +30,16 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputLayout;
 
+import com.microsoft.azure.sdk.iot.device.DeviceClient;
+import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodData;
+import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeCallback;
+import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeReason;
+import com.microsoft.azure.sdk.iot.device.IotHubMessageResult;
+import com.microsoft.azure.sdk.iot.device.IotHubStatusCode;
+import com.microsoft.azure.sdk.iot.device.Message;
+import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
+import com.microsoft.azure.sdk.iot.device.transport.IotHubConnectionStatus;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -39,6 +49,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodSession;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -46,6 +57,12 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
     private int room_1 = 53723, room_2 = 44680, room_3 = 56571, currentRoom = 0;
 
     private SharedPreferences prefs;
+    private Message sendMessageRegistration, sendMessageUpdating;
+    private String msgStrRegistration, msgStrUpdating;
+    private int msgSentCountRegistration = 0, msgSentCountUpdating = 0;
+
+    private DeviceClient client;
+
+    private static final int METHOD_SUCCESS = 200;
+    public static final int METHOD_THROWS = 403;
+    private static final int METHOD_NOT_DEFINED = 404;
+
 
     private final String DEBUG_TAG = "DEBUG";
     final private int REQUEST_ENABLE_BT = 125;
@@ -261,6 +288,54 @@ public class MainActivity extends AppCompatActivity {
                 setData(prefs, full_name.getText().toString(), email.getText().toString(), age.getText().toString(), ((RadioButton)findViewById(gender_group.getCheckedRadioButtonId())).getText().toString());
             }
         });
+    }
+
+    private void sendMessagesUpdate() {
+
+        msgStrUpdating = "{\n" +
+                " \"email\": "+ prefs.getString("email", null) + "\n" +
+                " \"room\": "+ currentRoom + "\n" +
+                " \"type\": "+ "U" + "\n" +
+                "}";
+
+        try
+        {
+            sendMessageUpdating = new Message(msgStrUpdating);
+            sendMessageUpdating.setMessageId(java.util.UUID.randomUUID().toString());
+            System.out.println("Message Sent: " + msgStrUpdating);
+            EventCallback eventCallback = new EventCallback();
+            client.sendEventAsync(sendMessageUpdating, eventCallback, msgSentCountUpdating);
+            msgSentCountUpdating++;
+        }
+        catch (Exception e)
+        {
+            System.err.println("Exception while sending event: " + e);
+        }
+    }
+
+    private void sendSignIn() {
+        prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
+        msgStrRegistration = "{\n" +
+                " \"name\": "+ prefs.getString("full_name", null) + "\n" +
+                " \"email\": "+ prefs.getString("email", null) + "\n" +
+                " \"age\": "+ prefs.getString("age", null) + "\n" +
+                " \"gender\": "+ prefs.getString("gender", null) + "\n" +
+                " \"type\": "+ "R" + "\n" +
+                "}";
+
+        try
+        {
+            sendMessageRegistration = new Message(msgStrRegistration);
+            sendMessageRegistration.setMessageId(java.util.UUID.randomUUID().toString());
+            System.out.println("Message Sent: " + msgStrRegistration);
+            EventCallback eventCallback = new EventCallback();
+            client.sendEventAsync(sendMessageRegistration, eventCallback, msgSentCountRegistration);
+            msgSentCountRegistration++;
+        }
+        catch (Exception e)
+        {
+            System.err.println("Exception while sending event: " + e);
+        }
     }
 
     @Override
@@ -466,6 +541,127 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("gender", gender);
         editor.commit();
         Toast.makeText(MainActivity.this, "Data saved!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void initClient() throws URISyntaxException, IOException
+    {
+        client = new DeviceClient(connString, protocol);
+
+        try
+        {
+            client.registerConnectionStatusChangeCallback(new IotHubConnectionStatusChangeCallbackLogger(), new Object());
+            client.open();
+            MessageCallback callback = new MessageCallback();
+            client.setMessageCallback(callback, null);
+            client.subscribeToDeviceMethod(new SampleDeviceMethodCallback(), getApplicationContext(), new DeviceMethodStatusCallBack(), null);
+        }
+        catch (Exception e)
+        {
+            System.err.println("Exception while opening IoTHub connection: " + e);
+            client.closeNow();
+            System.out.println("Shutting down...");
+        }
+    }
+
+    class EventCallback implements IotHubEventCallback
+    {
+        public void execute(IotHubStatusCode status, Object context)
+        {
+
+        }
+    }
+
+    class MessageCallback implements com.microsoft.azure.sdk.iot.device.MessageCallback
+    {
+        public IotHubMessageResult execute(Message msg, Object context)
+        {
+            return IotHubMessageResult.COMPLETE;
+        }
+    }
+
+    protected static class IotHubConnectionStatusChangeCallbackLogger implements IotHubConnectionStatusChangeCallback
+    {
+        @Override
+        public void execute(IotHubConnectionStatus status, IotHubConnectionStatusChangeReason statusChangeReason, Throwable throwable, Object callbackContext)
+        {
+            System.out.println();
+            System.out.println("CONNECTION STATUS UPDATE: " + status);
+            System.out.println("CONNECTION STATUS REASON: " + statusChangeReason);
+            System.out.println("CONNECTION STATUS THROWABLE: " + (throwable == null ? "null" : throwable.getMessage()));
+            System.out.println();
+
+            if (throwable != null)
+            {
+                throwable.printStackTrace();
+            }
+
+            if (status == IotHubConnectionStatus.DISCONNECTED)
+            {
+                //connection was lost, and is not being re-established. Look at provided exception for
+                // how to resolve this issue. Cannot send messages until this issue is resolved, and you manually
+                // re-open the device client
+            }
+            else if (status == IotHubConnectionStatus.DISCONNECTED_RETRYING)
+            {
+                //connection was lost, but is being re-established. Can still send messages, but they won't
+                // be sent until the connection is re-established
+            }
+            else if (status == IotHubConnectionStatus.CONNECTED)
+            {
+                //Connection was successfully re-established. Can send messages.
+            }
+        }
+    }
+
+    private int method_setSendMessagesInterval(Object methodData) throws UnsupportedEncodingException, JSONException
+    {
+        String payload = new String((byte[])methodData, "UTF-8").replace("\"", "");
+        JSONObject obj = new JSONObject(payload);
+        sendMessagesInterval = obj.getInt("sendInterval");
+        return METHOD_SUCCESS;
+    }
+
+    private int method_default(Object data)
+    {
+        System.out.println("invoking default method for this device");
+        // Insert device specific code here
+        return METHOD_NOT_DEFINED;
+    }
+
+    protected class DeviceMethodStatusCallBack implements IotHubEventCallback
+    {
+        public void execute(IotHubStatusCode status, Object context)
+        {
+            System.out.println("IoT Hub responded to device method operation with status " + status.name());
+        }
+    }
+
+    protected class SampleDeviceMethodCallback implements com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodCallback
+    {
+        @Override
+        public DeviceMethodData call(String methodName, Object methodData, Object context)
+        {
+            DeviceMethodData deviceMethodData ;
+            try {
+                switch (methodName) {
+                    case "setSendMessagesInterval": {
+                        int status = method_setSendMessagesInterval(methodData);
+                        deviceMethodData = new DeviceMethodData(status, "executed " + methodName);
+                        break;
+                    }
+                    default: {
+                        int status = method_default(methodData);
+                        deviceMethodData = new DeviceMethodData(status, "executed " + methodName);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                int status = METHOD_THROWS;
+                deviceMethodData = new DeviceMethodData(status, "Method Throws " + methodName);
+            }
+            return deviceMethodData;
+        }
     }
 
 }
