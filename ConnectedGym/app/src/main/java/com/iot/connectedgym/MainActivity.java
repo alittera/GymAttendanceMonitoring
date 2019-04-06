@@ -250,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
             editor.putString("email", "");
             editor.putString("age", "");
             editor.putString("gender", "");
+            editor.putBoolean("registered", false);
             editor.commit();
         }
 
@@ -477,7 +478,26 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("age", age);
         editor.putString("gender", gender);
         editor.commit();
-        Toast.makeText(MainActivity.this, "Data saved!", Toast.LENGTH_SHORT).show();
+        if(!prefs.getBoolean("registered", false)) {
+            if (!prefs.getString("full_name", null).equals("") &&
+                    !prefs.getString("email", null).equals("") &&
+                    !prefs.getString("age", null).equals("") &&
+                    !prefs.getString("gender", null).equals("")) {
+                try {
+                    initClient();
+                    sendRegMessages();
+                } catch (Exception e) {
+                    lastException = "Exception while opening IoTHub connection: " + e;
+                    handler.post(exceptionRunnable);
+                }
+                prefs.edit().putBoolean("registered", true);
+                prefs.edit().commit();
+                Toast.makeText(MainActivity.this, "Data saved!", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(MainActivity.this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     // Azure Functions
