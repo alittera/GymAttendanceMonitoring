@@ -297,6 +297,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        if(prefs.getBoolean("registered", false)) {
+            startUpd();
+        }
     }
 
     @Override
@@ -316,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
         //beaconManager.stopRanging(region);
+        stopUpd();
         beaconManager.stopMonitoring(region);
         beaconManager.disconnect();
     }
