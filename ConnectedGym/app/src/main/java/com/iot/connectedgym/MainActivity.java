@@ -297,9 +297,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        if(prefs.getBoolean("registered", false)) {
+        /*if(prefs.getBoolean("registered", false)) {
             startUpd();
-        }
+        }*/
     }
 
     @Override
@@ -507,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
                 " \"name\": "+ prefs.getString("full_name", null) + ", \n" +
                 " \"email\": "+ prefs.getString("email", null) + ", \n" +
                 " \"age\": "+ prefs.getString("age", null) + ",\n" +
-                " \"gender\": "+ prefs.getString("gender", null) +, "\n" +
+                " \"gender\": "+ prefs.getString("gender", null) + ", \n" +
                 " \"type\": "+ "R" + "\n" +
                 "}";
         try {
