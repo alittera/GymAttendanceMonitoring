@@ -504,10 +504,10 @@ public class MainActivity extends AppCompatActivity {
     private void sendRegMessages() {
         prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
         msgReg = "{\n" +
-                " \"name\": "+ prefs.getString("full_name", null) + "\n" +
-                " \"email\": "+ prefs.getString("email", null) + "\n" +
-                " \"age\": "+ prefs.getString("age", null) + "\n" +
-                " \"gender\": "+ prefs.getString("gender", null) + "\n" +
+                " \"name\": "+ prefs.getString("full_name", null) + ", \n" +
+                " \"email\": "+ prefs.getString("email", null) + ", \n" +
+                " \"age\": "+ prefs.getString("age", null) + ",\n" +
+                " \"gender\": "+ prefs.getString("gender", null) +, "\n" +
                 " \"type\": "+ "R" + "\n" +
                 "}";
         try {
@@ -525,8 +525,8 @@ public class MainActivity extends AppCompatActivity {
     private void sendUpdMessages() {
         prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
         msgUpd = "{\n" +
-                " \"email\": "+ prefs.getString("email", null) + "\n" +
-                " \"room\": "+ currentRoom + "\n" +
+                " \"email\": "+ prefs.getString("email", null) + ", \n" +
+                " \"room\": "+ currentRoom + ", \n" +
                 " \"type\": "+ "U" + "\n" +
                 "}";
         try {
