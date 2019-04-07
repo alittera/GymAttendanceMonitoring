@@ -490,6 +490,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 initClient();
                 sendRegMessages();
+                Log.d(DEBUG_TAG,"Registration sent");
+                client.closeNow();
             } catch (Exception e) {
                 lastException = "Exception while opening IoTHub connection: " + e;
                 handler.post(exceptionRunnable);
