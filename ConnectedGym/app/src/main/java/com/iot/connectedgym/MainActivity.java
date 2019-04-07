@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
         //beaconManager.stopRanging(region);
-        if(prefs.getBoolean("registered", false)) {
+        if(updating) {
             stopUpd();
         }
         beaconManager.stopMonitoring(region);
@@ -494,7 +494,6 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("gender", gender);
         editor.commit();
         boolean registered = prefs.getBoolean("registered", false);
-        Toast.makeText(MainActivity.this, Boolean.toString(registered), Toast.LENGTH_SHORT).show();
         if(!registered) {
             try {
                 initClient();
@@ -507,7 +506,6 @@ public class MainActivity extends AppCompatActivity {
             editor.putBoolean("registered", true);
             editor.commit();
             startUpd();
-            Log.d(DEBUG_TAG,"Started sender update thread");
         }
     }
 
@@ -609,7 +607,6 @@ public class MainActivity extends AppCompatActivity {
             client.closeNow();
             System.out.println("Shutting down...");
         }
-        connected = true;
     }
 
     class EventCallback implements IotHubEventCallback {
