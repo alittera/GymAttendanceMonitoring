@@ -567,6 +567,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+        updating = false;
     }
 
     private void startUpd() {
@@ -586,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
+        updating = true;
         sendUpdThread.start();
     }
 
