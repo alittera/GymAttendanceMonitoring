@@ -38,7 +38,6 @@ import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubMessageResult;
 import com.microsoft.azure.sdk.iot.device.IotHubStatusCode;
 import com.microsoft.azure.sdk.iot.device.Message;
-import com.microsoft.azure.sdk.iot.device.MessageCallback;
 import com.microsoft.azure.sdk.iot.device.transport.IotHubConnectionStatus;
 
 import androidx.appcompat.app.AlertDialog;
@@ -222,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                     //nearestBeacon.getRssi();
                     //nearestBeacon.getMeasuredPower();
                     Utils.Proximity pos = Utils.computeProximity(nearestBeacon);
-                    Log.d(DEBUG_TAG, "  Utils.computeProximity(nearestBeacon): " + Utils.computeProximity(nearestBeacon));
+                    //Log.d(DEBUG_TAG, "  Utils.computeProximity(nearestBeacon): " + Utils.computeProximity(nearestBeacon));
                     String msg = "";
                     if (pos == Utils.Proximity.IMMEDIATE) {
                         msg = "IMMEDIATE";
@@ -289,7 +288,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                setData(prefs, full_name.getText().toString(), email.getText().toString(), age.getText().toString(), ((RadioButton)findViewById(gender_group.getCheckedRadioButtonId())).getText().toString());
+                String myname = full_name.getText().toString(), myemail = email.getText().toString(), myage = age.getText().toString(), mygender = ((RadioButton)findViewById(gender_group.getCheckedRadioButtonId())).getText().toString();
+                if(!myname.equals("") && !myemail.equals("") && !myage.equals("") && !mygender.equals("")) {
+                    setData(prefs, myname, myemail, myage, mygender);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -321,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
         if (mBluetoothAdapter == null) {
             // Device does not support Bluetooth
         }
-        if(request<max_request) {
+        if(request < max_request) {
             if (!mBluetoothAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
@@ -357,10 +362,10 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_ENABLE_BT:
                 switch(resultCode) {
                     case RESULT_OK:
-                        Log.d(DEBUG_TAG,"L utente ha dato il permesso");
+                        Log.d(DEBUG_TAG,"User permission");
                         break;
                     case RESULT_CANCELED:
-                        Log.d(DEBUG_TAG,"L utente non ha dato il permesso");
+                        Log.d(DEBUG_TAG,"Not user permission");
                         break;
                 }
         }
@@ -373,14 +378,14 @@ public class MainActivity extends AppCompatActivity {
             //shouldShowRequestPermissionRationale() = If this function is called on pre-M, it will always return false.
             if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
 
-                showMessageOKCancel("You need to allow access for BLT scanning on Android 6.0 and above.",
+                /*showMessageOKCancel("You need to allow access for BLT scanning on Android 6.0 and above.",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 ActivityCompat.requestPermissions(MainActivity.this,
                                         new String[] {Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_ENABLE_BT);
                             }
-                        });
+                        });*/
 
                 return;
             }
@@ -400,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_ENABLE_BT:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
-                    Log.d(DEBUG_TAG,"PERMESSO DATO!!!");
+                    Log.d(DEBUG_TAG,"Permission garanted!");
                 } else {
                     // Permission Denied
                     Toast.makeText(MainActivity.this, "PERMISSION_GRANTED Denied", Toast.LENGTH_SHORT).show();
@@ -425,10 +430,7 @@ public class MainActivity extends AppCompatActivity {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
 
-        Task<LocationSettingsResponse> result =
-                LocationServices.getSettingsClient(MainActivity.this).checkLocationSettings(builder.build());
-
-
+        Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(MainActivity.this).checkLocationSettings(builder.build());
 
         result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
             @Override
@@ -478,25 +480,18 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("age", age);
         editor.putString("gender", gender);
         editor.commit();
-        if(!prefs.getBoolean("registered", false)) {
-            if (!prefs.getString("full_name", null).equals("") &&
-                    !prefs.getString("email", null).equals("") &&
-                    !prefs.getString("age", null).equals("") &&
-                    !prefs.getString("gender", null).equals("")) {
-                try {
-                    initClient();
-                    sendRegMessages();
-                } catch (Exception e) {
-                    lastException = "Exception while opening IoTHub connection: " + e;
-                    handler.post(exceptionRunnable);
-                }
-                prefs.edit().putBoolean("registered", true);
-                prefs.edit().commit();
-                Toast.makeText(MainActivity.this, "Data saved!", Toast.LENGTH_SHORT).show();
+        boolean registered = prefs.getBoolean("registered", false);
+        Toast.makeText(MainActivity.this, Boolean.toString(registered), Toast.LENGTH_SHORT).show();
+        if(!registered) {
+            try {
+                initClient();
+                sendRegMessages();
+            } catch (Exception e) {
+                lastException = "Exception while opening IoTHub connection: " + e;
+                handler.post(exceptionRunnable);
             }
-            else {
-                Toast.makeText(MainActivity.this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
-            }
+            editor.putBoolean("registered", true);
+            editor.commit();
         }
     }
 
