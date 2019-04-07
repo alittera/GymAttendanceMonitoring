@@ -300,7 +300,6 @@ public class MainActivity extends AppCompatActivity {
         });
         if(prefs.getBoolean("registered", false) && !updating) {
             try {
-                initClient();
                 startUpd();
             } catch (Exception e){
                 lastException = "Exception while closing IoTHub connection: " + e;
@@ -561,6 +560,7 @@ public class MainActivity extends AppCompatActivity {
                     sendUpdThread.interrupt();
                     if(connected) {
                         client.closeNow();
+                        connected = false;
                     }
                     System.out.println("Shutting down...");
                 } catch (Exception e) {
@@ -576,7 +576,9 @@ public class MainActivity extends AppCompatActivity {
         sendUpdThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    //initClient();
+                    if(!connected) {
+                        initClient();
+                    }
                     for(;;) {
                         sendUpdMessages();
                         Thread.sleep(sendMsgInterval);
@@ -607,6 +609,7 @@ public class MainActivity extends AppCompatActivity {
             client.closeNow();
             System.out.println("Shutting down...");
         }
+        connected = true;
     }
 
     class EventCallback implements IotHubEventCallback {
