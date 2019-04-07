@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private Thread sendUpdThread;
     private static final int METHOD_SUCCESS = 200, METHOD_THROWS = 403, METHOD_NOT_DEFINED = 404;
     private Handler handler;
-    private boolean updating = false;
+    private boolean updating = false, connected = false;
 
     private final String DEBUG_TAG = "DEBUG";
     private final int REQUEST_ENABLE_BT = 125;
@@ -299,7 +299,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         if(prefs.getBoolean("registered", false) && !updating) {
-            startUpd();
+            try {
+                initClient();
+                startUpd();
+            } catch (Exception e){
+                lastException = "Exception while closing IoTHub connection: " + e;
+                handler.post(exceptionRunnable);
+            }
             Log.d(DEBUG_TAG,"Started sender update thread");
         }
     }
@@ -323,12 +329,6 @@ public class MainActivity extends AppCompatActivity {
         //beaconManager.stopRanging(region);
         if(prefs.getBoolean("registered", false)) {
             stopUpd();
-        }
-        try {
-            client.closeNow();
-        } catch (Exception e) {
-            lastException = "Exception while closing IoTHub connection: " + e;
-            handler.post(exceptionRunnable);
         }
         beaconManager.stopMonitoring(region);
         beaconManager.disconnect();
@@ -559,7 +559,9 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     sendUpdThread.interrupt();
-                    //client.closeNow();
+                    if(connected) {
+                        client.closeNow();
+                    }
                     System.out.println("Shutting down...");
                 } catch (Exception e) {
                     lastException = "Exception while closing IoTHub connection: " + e;
@@ -599,6 +601,7 @@ public class MainActivity extends AppCompatActivity {
             MessageCallback callback = new MessageCallback();
             client.setMessageCallback(callback, null);
             client.subscribeToDeviceMethod(new SampleDeviceMethodCallback(), getApplicationContext(), new DeviceMethodStatusCallBack(), null);
+            connected = true;
         } catch (Exception e) {
             System.err.println("Exception while opening IoTHub connection: " + e);
             client.closeNow();
