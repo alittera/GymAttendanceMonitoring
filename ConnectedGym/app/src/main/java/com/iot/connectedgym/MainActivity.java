@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private Thread sendUpdThread;
     private static final int METHOD_SUCCESS = 200, METHOD_THROWS = 403, METHOD_NOT_DEFINED = 404;
     private Handler handler;
+    private boolean updating = false;
 
     private final String DEBUG_TAG = "DEBUG";
     private final int REQUEST_ENABLE_BT = 125;
@@ -297,9 +298,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        /*if(prefs.getBoolean("registered", false)) {
+        if(prefs.getBoolean("registered", false) && !updating) {
             startUpd();
-        }*/
+            Log.d(DEBUG_TAG,"Started sender update thread");
+        }
     }
 
     @Override
@@ -321,6 +323,12 @@ public class MainActivity extends AppCompatActivity {
         //beaconManager.stopRanging(region);
         if(prefs.getBoolean("registered", false)) {
             stopUpd();
+        }
+        try {
+            client.closeNow();
+        } catch (Exception e) {
+            lastException = "Exception while closing IoTHub connection: " + e;
+            handler.post(exceptionRunnable);
         }
         beaconManager.stopMonitoring(region);
         beaconManager.disconnect();
@@ -493,13 +501,14 @@ public class MainActivity extends AppCompatActivity {
                 initClient();
                 sendRegMessages();
                 Log.d(DEBUG_TAG,"Registration sent");
-                client.closeNow();
             } catch (Exception e) {
                 lastException = "Exception while opening IoTHub connection: " + e;
                 handler.post(exceptionRunnable);
             }
             editor.putBoolean("registered", true);
             editor.commit();
+            startUpd();
+            Log.d(DEBUG_TAG,"Started sender update thread");
         }
     }
 
@@ -508,11 +517,11 @@ public class MainActivity extends AppCompatActivity {
     private void sendRegMessages() {
         prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
         msgReg = "{\n" +
-                " \"name\": \""+ prefs.getString("full_name", null) + "\",\n" +
-                " \"email\": \""+ prefs.getString("email", null) + "\",\n" +
-                " \"age\": "+ prefs.getString("age", null) + ",\n" +
-                " \"gender\": \""+ prefs.getString("gender", null) + "\",\n" +
-                " \"messageType\": "+ "\"R\"" + "\n" +
+                " \"name\": \""+ prefs.getString("full_name", null) + "\", \n" +
+                " \"email\": \""+ prefs.getString("email", null) + "\", \n" +
+                " \"age\": "+ prefs.getString("age", null) + ", \n" +
+                " \"gender\": \""+ prefs.getString("gender", null) + "\", \n" +
+                " \"messageType\": \"R\"\n" +
                 "}";
         try {
             sendReg = new Message(msgReg);
@@ -529,9 +538,9 @@ public class MainActivity extends AppCompatActivity {
     private void sendUpdMessages() {
         prefs = getApplicationContext().getSharedPreferences("userData", MODE_PRIVATE);
         msgUpd = "{\n" +
-                " \"email\": \""+ prefs.getString("email", null) + "\" , \n" +
-                " \"room\": \""+ currentRoom + "\" , \n" +
-                " \"messageType\": "+ "\"U\"" + "\n" +
+                " \"email\": \""+ prefs.getString("email", null) + "\", \n" +
+                " \"room\": "+ currentRoom + ", \n" +
+                " \"messageType\": \"U\"\n" +
                 "}";
         try {
             sendUpd = new Message(msgUpd);
@@ -550,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     sendUpdThread.interrupt();
-                    client.closeNow();
+                    //client.closeNow();
                     System.out.println("Shutting down...");
                 } catch (Exception e) {
                     lastException = "Exception while closing IoTHub connection: " + e;
@@ -564,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
         sendUpdThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    initClient();
+                    //initClient();
                     for(;;) {
                         sendUpdMessages();
                         Thread.sleep(sendMsgInterval);
