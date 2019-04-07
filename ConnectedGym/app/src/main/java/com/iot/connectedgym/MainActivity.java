@@ -319,7 +319,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(DEBUG_TAG, "onDestroy()");
         //beaconManager.stopRanging(region);
-        stopUpd();
+        if(prefs.getBoolean("registered", false)) {
+            stopUpd();
+        }
         beaconManager.stopMonitoring(region);
         beaconManager.disconnect();
     }
