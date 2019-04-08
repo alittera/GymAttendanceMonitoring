@@ -3,7 +3,7 @@
 <a href="https://www.dis.uniroma1.it/" title="DIAG"><img src="img/sapienza.jpg" width=1000></a>
 
 **Gym Attendance Monitoring** is a proof of concept of an android application which tracks the user through the gym to monitor the use of the rooms and to have a customer loyalty system. 
-The project is part of the [Internet of Things course](http://ichatz.me/Site/InternetOfThings2019) held at the Sapienza University of Rome.
+The project is part of the [Internet of Things course](http://ichatz.me/Site/InternetOfThings2019) held at [***Sapienza University of Rome***](https://www.uniroma1.it/it).
 
 For the correct functioning it is necessary to own the Estimote branded beacons; Microsoft Azure and Grafana technologies will also be used.
 
@@ -22,7 +22,7 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 <br/><a href="https://azure.microsoft.com/en-us/services/iot-hub/" title="Azure"><img src="img/azure.png" width=240/></a>    <a href="https://grafana.com/" title="Grafana"><img src="img/grafana.jpg" width=240/></a></pre>
 
 * **Presentations**:
-<br/><pre>     **Preliminary Presentation**                    **Final Presentation**
+<br/><pre>     **Preliminary Presentation**                        **Final Presentation**
 <br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Preliminary Presentation"><img src="img/presentation.gif" width=300/></a> <a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Final Presentation"><img src="img/presentationFinal.gif" width=400 height=220/></a></pre>
 
 ## **How does it work**
@@ -43,7 +43,7 @@ To store user data from the application, you need to store it in a database on t
 To graph the data stored on Azure, we used ***Grafana***,an open-source, general purpose dashboard and graph composer, which runs as a web application. Thanks to the [***Azure Monitoring plugin for Grafana***](https://grafana.com/plugins/grafana-azure-monitor-datasource), it's possible to queries Azure SQL database to create statics useful for gym's owner.
 
 ## **How to run the app**
-* Simply install the *Connected Gym.apk* application on your smartphone (You should allow installation from unknown sources).
+* Simply install the ***Connected Gym.apk*** application on your smartphone (You should allow installation from unknown sources).
 * Launch the application on your smartphone
 * Grant location permissions
 * Turn on **Bluetooth** and **GPS**
