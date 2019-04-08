@@ -21,8 +21,9 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 </br>        [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/)                      [Graphana](https://grafana.com/)
 <br/><a href="https://azure.microsoft.com/en-us/services/iot-hub/" title="Azure"><img src="img/azure.png" width=240/></a>    <a href="https://grafana.com/" title="Grafana"><img src="img/grafana.jpg" width=240/></a></pre>
 
-* **Preliminary Presentation**:
-<br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="SlideShare"><img src="img/presentation.jpg" width=300/></a>
+* **Presentations**:
+<br/><pre>     **Preliminary Presentation**                    **Final Presentation**
+<br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Preliminary Presentation"><img src="img/presentation.gif" width=300/></a> <a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Final Presentation"><img src="img/presentationFinal.gif" width=400 height=220/></a></pre>
 
 ## **How does it work**
 
