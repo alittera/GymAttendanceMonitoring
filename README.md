@@ -3,7 +3,7 @@
 <a href="https://www.dis.uniroma1.it/" title="DIAG"><img src="img/sapienza.jpg" width=1000></a>
 
 **Gym Attendance Monitoring** is a proof of concept of an android application which tracks the user through the gym to monitor the use of the rooms and to have a customer loyalty system. 
-The project is part of the [Internet of Things course](http://ichatz.me/Site/InternetOfThings2019) held at [***Sapienza University of Rome***](https://www.uniroma1.it/it).
+The project is part of the [***Internet of Things course***](http://ichatz.me/Site/InternetOfThings2019) held at [***Sapienza University of Rome***](https://www.uniroma1.it/it).
 
 For the correct functioning it is necessary to own the Estimote branded beacons; Microsoft Azure and Grafana technologies will also be used.
 
