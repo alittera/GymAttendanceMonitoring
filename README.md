@@ -18,7 +18,7 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 * **Technologies**:
 <br/><pre>       [Estimote Beacons](https://estimote.com/)                  [Android SDK](https://developer.android.com/)
 <br/><a href="https://estimote.com/" title="Estimote"><img src="img/beacon.png" width = 250/></a>   <a href="https://developer.android.com/" title="Android"><img src="img/android.png" width=235/>
-</br>        [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/)                      [Graphana](https://grafana.com/)
+</br>        [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/)                      [Grafana](https://grafana.com/)
 <br/><a href="https://azure.microsoft.com/en-us/services/iot-hub/" title="Azure"><img src="img/azure.png" width=240/></a>    <a href="https://grafana.com/" title="Grafana"><img src="img/grafana.jpg" width=240/></a></pre>
 
 * **Presentations**:
@@ -27,17 +27,20 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 
 ## **How does it work**
 
-### **User track** 
+### **Track User** 
 <img src="img/estimote.gif" width=1000/>
-How beacons work
 
-### **Data on cloud**
+GPS cannot be used to track a user inside a building. This requires a different solution. The best method is to use beacons, ***Bluetooth Low Energy*** (***BLE***) components that communicate their presence to the devices around it. It is powered by a non-replaceable lithium battery. They work like a lighthouse, so your smartphone can know which is the nearest one. For our purpose, we have used the ***Estimote Beacons***. We have associated a room with each beacon, so you can know which room the user is in. To integrate them into the application, [***Estimote SDK***](https://github.com/Estimote/Android-Fleet-Management-SDK) have been used.
+
+### **Store and analyse data**
 <img src="img/azure.gif" width=1000/>
-Azure
 
-### **Grafana**
+To store user data from the application, you need to store it in a database on the cloud. To do this we used ***Azure IoT Hub***, an open and flexible cloud platform as a service that supports open-source SDKs and multiple protocols. This makes it possible to securely connect, monitor, and manage billions of devices to develop Internet of Things applications. Two databases were used: the first one for user's data and the second one for events (entrance to a room, change of room, abandonment of the room...). The data is sent by the application to Azure thanks to [***Azure IoT SDKs***](https://github.com/Azure/azure-iot-sdks).
+
+### **Graphicize the analyzed data**
 <img src="img/grafana.gif" width=1000/>
-How grafana works
+
+To graph the data stored on Azure, we used ***Grafana***,an open-source, general purpose dashboard and graph composer, which runs as a web application. Thanks to the [***Azure Monitoring plugin for Grafana***](https://grafana.com/plugins/grafana-azure-monitor-datasource), it's possible to queries Azure SQL database to create statics useful for gym's owner.
 
 ## **How to run the app**
 * Simply install the *Connected Gym.apk* application on your smartphone (You should allow installation from unknown sources).
