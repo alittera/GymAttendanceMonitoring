@@ -11,7 +11,7 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 <br/>- *Andrea Littera* <a href="https://github.com/alittera" title="GitHub"><img src=https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png width=20/></a>
 <a href="https://www.linkedin.com/in/andrea-littera/" title="LinkedIn"><img src=https://cdn1.iconfinder.com/data/icons/logotypes/32/square-linkedin-512.png width=20/></a>
 <br/>- *Gianmarco Cariggi* <a href="https://github.com/giacar" title="GitHub"><img src=https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png width=20/></a>
-<a href="https://www.linkedin.com/in/gianmarco-cariggi-400180174/" title="LinkedIn"><img src=https://cdn1.iconfinder.com/data/icons/logotypes/32/square-linkedin-512.png width=20/></a>
+<a href="https://www.linkedin.com/in/gianmarco-cariggi/" title="LinkedIn"><img src=https://cdn1.iconfinder.com/data/icons/logotypes/32/square-linkedin-512.png width=20/></a>
 <br/>- *Marco Costa* <a href="https://github.com/marcocosta96" title="GitHub"><img src=https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png width=20/></a>
 <a href="https://www.linkedin.com/in/marco-costa-ecs" title="LinkedIn"><img src=https://cdn1.iconfinder.com/data/icons/logotypes/32/square-linkedin-512.png width=20/></a>
 
@@ -24,6 +24,10 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 * **Presentations**:
 <br/><pre>     **Preliminary Presentation**                        **Final Presentation**
 <br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Preliminary Presentation"><img src="img/presentation.gif" width=300/></a> <a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Final Presentation"><img src="img/presentationFinal.gif" width=400 height=220/></a></pre>
+
+* **Blog post**:
+<br/><pre>                    **Hackster**
+<br/><a href="https://www.hackster.io/151941/gym-attendance-monitoring-via-beacon-123eef" title="Hackster Blog"><img src="img/hackster.gif" width=400/></a></pre>
 
 ## **How does it work**
 
