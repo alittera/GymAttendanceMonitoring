@@ -16,14 +16,11 @@ For the correct functioning it is necessary to own the Estimote branded beacons;
 <a href="https://www.linkedin.com/in/marco-costa-ecs" title="LinkedIn"><img src=https://cdn1.iconfinder.com/data/icons/logotypes/32/square-linkedin-512.png width=20/></a>
 
 * **Technologies**:
-<br/><pre>       [Estimote Beacons](https://estimote.com/)                  [Android SDK](https://developer.android.com/)
-<br/><a href="https://estimote.com/" title="Estimote"><img src="img/beacon.png" width = 250/></a>   <a href="https://developer.android.com/" title="Android"><img src="img/android.png" width=235/>
-</br>        [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/)                      [Grafana](https://grafana.com/)
-<br/><a href="https://azure.microsoft.com/en-us/services/iot-hub/" title="Azure"><img src="img/azure.png" width=240/></a>    <a href="https://grafana.com/" title="Grafana"><img src="img/grafana.jpg" width=240/></a></pre>
+<br/><div style="float: left; text-align: center; padding-right: 20px;">[Estimote Beacons](https://estimote.com/)<br/><a href="https://estimote.com/" title="Estimote"><img src="img/beacon.png" width = 250/></a></div><div style="float: left"></div><div style="float: left; text-align: center">[Android SDK](https://developer.android.com/)<br/><a href="https://developer.android.com/" title="Android"><img src="img/android.png" width=235/></div><div style="clear: both"></div><div style="float: left; text-align: center; padding-right: 30px;">[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/)<br/><a href="https://azure.microsoft.com/en-us/services/iot-hub/" title="Azure"><img src="img/azure.png" width=240/></a></div><div style="float: left; text-align: center">[Grafana](https://grafana.com/)<br/><a href="https://grafana.com/" title="Grafana"><img src="img/grafana.jpg" width=240/></a></div><div style="clear: both"></div>
 
 * **Presentations**:
 <br/><pre>     **Preliminary Presentation**                        **Final Presentation**
-<br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Preliminary Presentation"><img src="img/presentation.gif" width=300/></a> <a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Final Presentation"><img src="img/presentationFinal.gif" width=400 height=220/></a></pre>
+<br/><a href="https://www.slideshare.net/AndreaLittera1/connected-gym" title="Preliminary Presentation"><img src="img/presentation.gif" width=300/></a> <a href="https://www.slideshare.net/AndreaLittera1/connected-gym-final-presentation" title="Final Presentation"><img src="img/presentationFinal.gif" width=400 height=220/></a></pre>
 
 * **Blog post**:
 <br/><pre>                    **Hackster**
