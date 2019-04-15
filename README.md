@@ -43,8 +43,47 @@ To store user data from the application, you need to store it in a database on t
 
 To graph the data stored on Azure, we used ***Grafana***,an open-source, general purpose dashboard and graph composer, which runs as a web application. Thanks to the [***Azure Monitoring plugin for Grafana***](https://grafana.com/plugins/grafana-azure-monitor-datasource), it's possible to queries Azure SQL database to create statics useful for gym's owner.
 
-## **How to run the app**
-* Simply install the ***Connected Gym.apk*** application on your smartphone (You should allow installation from unknown sources).
+## **Installation**
+### **First step: configure project**
+* Import ***ConnectedGym*** folder as project into Android Studio.
+* In ***MainActivity.java***, replace *room_#* with the minor number of your *Beacons*.
+### **Second step: register device on Azure IoT Hub**
+* Download ***Azure Cloud Shell***
+* Login to Azure from command line:
+```
+$: az login
+```
+* Register your device on the Azure IoT Hub platform:
+```
+$: az extension add --name azure-cli-iot-ext
+$: az iot hub device-identity create --hub-name YourIoTHubName --device-id MyAndroidDevice
+```
+where ```YourIoTHubName``` is the name of the device registered on the azure iot hub platform.
+### **Third step: obtain the connection string for your device**
+```
+$: az iot hub device-identity show-connection-string --hub-name YourIoTHubName --device-id MyAndroidDevice --output table
+```
+### **Fourth step: send data to Azure IoT Hub platform**
+* Put the connection string obtained in ***step 3*** in the file ***gradle.properties***
+* App will send data automatically if configured
+* In order to check if data are sent to azure iot hub you can check this from the azure cloud shell with the following command:
+```
+$: az iot hub monitor-events --hub-name YourIoTHubName --output table
+```
+### **Run Android App**
+* Make sure your Android device is connected to your computer via a USB cable.
+* Connect the device to WiFi/UMTS network that allows for communication with the server. 
+* Make sure your device is set up for ***development*** as explained [here](https://developer.android.com/training/basics/firstapp/running-app#RealDevice).
+* Change ***USB mode*** to data transfer and allow the ***RSA fingerprint*** request of access if asked.
+* Click on run button on Android Studio GUI and select your device.
+<img src="img/buildApp.gif" width=1000/>
+
+Alternatively you can use ***adb*** from shell ([How to do it](http://delphi.org/2013/11/installing-and-running-android-apps-from-command-line/))
+
+N.B.
+You cannot run the app through android studio emulator due to the lack of bluetooth connection.  
+
+## **How to use the app**
 * Launch the application on your smartphone
 * Grant location permissions
 * Turn on **Bluetooth** and **GPS**
